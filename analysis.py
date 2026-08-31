@@ -302,15 +302,38 @@ DATA = None
 
 def main():
     global DATA
+
     os.makedirs(FIG_DIR, exist_ok=True)
     DATA = data_mod.load_split()
 
+    # Užkrauname visą istorinių rezultatų failą
     df = res.load_results()
-    print(f"Įrenginys: {DEVICE} | eilučių runs.csv: {len(df)}")
+
+    # Analizuojame TIK 2026-08-31 atliktą pilną eksperimentą
+    df = df[
+        (df["git"].astype(str) == "60c4431")
+        & df["model"].notna()
+    ].copy()
+
+    # Seed turi būti skaičius, o ne tekstas
+    df["seed"] = pd.to_numeric(
+        df["seed"],
+        errors="raise"
+    ).astype(int)
+
+    print(
+        f"Įrenginys: {DEVICE} | "
+        f"analizuojamų eilučių: {len(df)}"
+    )
+
     hashes = df["git"].unique()
+
     if len(hashes) > 1:
-        print(f"ĮSPĖJIMAS: rezultatai gauti su {len(hashes)} kodo versijomis: "
-              f"{list(hashes)}")
+        print(
+            f"ĮSPĖJIMAS: rezultatai gauti su "
+            f"{len(hashes)} kodo versijomis: "
+            f"{list(hashes)}"
+        )
 
     summary = summary_table(df)
     with pd.option_context("display.width", 250, "display.max_columns", 60):
